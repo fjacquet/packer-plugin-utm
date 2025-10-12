@@ -1,9 +1,10 @@
 ---
--- add_display.applescript
+-- add_qemu_display.applescript
 -- This script adds a display to a specified UTM virtual machine with the given hardware type.
--- Usage: osascript add_display.applescript <VM_UUID> --hardware <HARDWARE>
--- Example: osascript add_display.applescript A1B2C3 --hardware "pci"
--- Adds a display with PCI hardware.
+-- Usage: osascript add_qemu_display.applescript <VM_UUID> --hardware <HARDWARE>
+-- Example: osascript add_qemu_display.applescript A1B2C3 --hardware "virtio-ramfb"
+-- Adds a display with the specified hardware type.
+-- Returns the hardware type for tracking (compatible with all UTM versions).
 
 on run argv
   set vmId to item 1 of argv # UUID of the VM
@@ -27,13 +28,8 @@ on run argv
     --- save the configuration (VM must be stopped)
     update configuration of vm with config
 
-    -- Get the updated display id
-    set updatedConfig to configuration of vm
-    set updatedDisplays to displays of updatedConfig
-    set updatedDisplay to item -1 of updatedDisplays
-    set updatedDisplayId to id of updatedDisplay
-
-    -- return the new display id
-    return updatedDisplayId
+    -- Return the hardware type for tracking (compatible with all UTM versions)
+    -- We don't access id or index properties to maintain compatibility
+    return hardwareType
   end tell
 end run
