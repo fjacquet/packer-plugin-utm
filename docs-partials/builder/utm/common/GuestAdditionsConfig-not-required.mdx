@@ -23,6 +23,10 @@
    checksums will be downloaded from the UTM website, so this only needs
    to be set if you want to be explicit about the checksum.
 
+- `guest_additions_target_path` (string) - The path where the guest additions ISO should be saved
+  after download. By default, it will go in the packer cache, with a hash of
+  the original filename as its name.
+
 - `guest_additions_url` (string) - The URL of the guest additions ISO
    to upload. This can also be a file URL if the ISO is at a local path. By
    default, the UTM builder will attempt to find the guest additions ISO

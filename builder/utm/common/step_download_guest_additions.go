@@ -30,14 +30,14 @@ type guestAdditionsUrlTemplate struct {
 //
 //	guest_additions_path string - Path to the guest additions.
 type StepDownloadGuestAdditions struct {
-	GuestAdditionsMode   string
-	GuestAdditionsURL    string
-	GuestAdditionsSHA256 string
-	Ctx                  interpolate.Context
+	GuestAdditionsMode       string
+	GuestAdditionsURL        string
+	GuestAdditionsSHA256     string
+	GuestAdditionsTargetPath string
+	Ctx                      interpolate.Context
 }
 
 func (s *StepDownloadGuestAdditions) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
-	var action multistep.StepAction
 	driver := state.Get("driver").(Driver)
 	ui := state.Get("ui").(packersdk.Ui)
 
@@ -108,20 +108,27 @@ func (s *StepDownloadGuestAdditions) Run(ctx context.Context, state multistep.St
 		if s.GuestAdditionsSHA256 != "" {
 			checksum = s.GuestAdditionsSHA256
 		} else {
-			checksum, action = s.downloadAdditionsSHA256(ctx, state, version, additionsName)
-			if action != multistep.ActionContinue {
-				return action
-			}
+			// Skip checksum verification for default guest additions ISO
+			// since UTM doesn't provide checksums and versions change frequently
+			log.Println("Skipping checksum verification for default guest additions ISO")
+			checksumType = "none"
 		}
 	}
 
 	log.Printf("Guest additions URL: %s", url)
 
+	// Build checksum string with type prefix
+	checksumWithType := checksum
+	if checksumType != "none" && checksum != "" {
+		checksumWithType = fmt.Sprintf("%s:%s", checksumType, checksum)
+	}
+
 	// We're good, so let's go ahead and download this thing..
 	downStep := &commonsteps.StepDownload{
-		Checksum:    checksum,
+		Checksum:    checksumWithType,
 		Description: "Guest additions",
 		ResultKey:   "guest_additions_path",
+		TargetPath:  s.GuestAdditionsTargetPath,
 		Url:         []string{url},
 		Extension:   "iso",
 	}
@@ -130,15 +137,3 @@ func (s *StepDownloadGuestAdditions) Run(ctx context.Context, state multistep.St
 }
 
 func (s *StepDownloadGuestAdditions) Cleanup(state multistep.StateBag) {}
-
-func (s *StepDownloadGuestAdditions) downloadAdditionsSHA256(ctx context.Context, state multistep.StateBag, additionsVersion string, additionsName string) (string, multistep.StepAction) {
-	// UTM does not provide a SHA256 checksum for the guest additions
-	// See https://github.com/utmapp/qemu/releases/tag/v9.1.2-utm
-	// For now , we hardcode the checksum of latest version
-	// This is a temporary solution until UTM provides the checksum
-	// This is the SHA256 checksum of the guest additions for UTM 4.6.4
-	checksum := "8d91c59b92e236588199b04c1f3744a91a8d493663f0cd733353beb5217ce297"
-
-	return checksum, multistep.ActionContinue
-
-}

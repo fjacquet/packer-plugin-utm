@@ -26,7 +26,8 @@ on run argv
   end repeat
 
   -- gain access to the file, so you can pass it to UTM (which is sandboxed)
-  set isoFile to POSIX file (POSIX path of isoPath)
+  -- isoPath is already a POSIX path string, so we can use it directly
+  set isoFile to POSIX file isoPath
 
   tell application "UTM"
     -- Get the VM and its configuration

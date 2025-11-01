@@ -51,10 +51,11 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 	// Build the steps.
 	steps := []multistep.Step{
 		&utmcommon.StepDownloadGuestAdditions{
-			GuestAdditionsMode:   b.config.GuestAdditionsMode,
-			GuestAdditionsURL:    b.config.GuestAdditionsURL,
-			GuestAdditionsSHA256: b.config.GuestAdditionsSHA256,
-			Ctx:                  b.config.ctx,
+			GuestAdditionsMode:       b.config.GuestAdditionsMode,
+			GuestAdditionsURL:        b.config.GuestAdditionsURL,
+			GuestAdditionsSHA256:     b.config.GuestAdditionsSHA256,
+			GuestAdditionsTargetPath: b.config.GuestAdditionsTargetPath,
+			Ctx:                      b.config.ctx,
 		},
 		&commonsteps.StepDownload{
 			Checksum:    b.config.ISOChecksum,
