@@ -105,7 +105,7 @@ func (s *StepDownloadGuestAdditions) Run(ctx context.Context, state multistep.St
 
 	// Figure out a default checksum here
 	if checksumType != "none" {
-		if s.GuestAdditionsSHA256 != "" {
+		if s.GuestAdditionsSHA256 != "" && s.GuestAdditionsSHA256 != "none" {
 			checksum = s.GuestAdditionsSHA256
 		} else {
 			// Skip checksum verification for default guest additions ISO
@@ -118,7 +118,7 @@ func (s *StepDownloadGuestAdditions) Run(ctx context.Context, state multistep.St
 	log.Printf("Guest additions URL: %s", url)
 
 	// Build checksum string with type prefix
-	checksumWithType := checksum
+	checksumWithType := ""
 	if checksumType != "none" && checksum != "" {
 		checksumWithType = fmt.Sprintf("%s:%s", checksumType, checksum)
 	}
