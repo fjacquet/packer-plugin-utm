@@ -6,17 +6,16 @@ package vagrant
 import (
 	"archive/tar"
 	"compress/flate"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/tmp"
-	"github.com/klauspost/pgzip"
 )
 
 var (
@@ -233,10 +232,11 @@ func WriteMetadata(dir string, contents interface{}) error {
 }
 
 func makePgzipWriter(output io.WriteCloser, compressionLevel int) (io.WriteCloser, error) {
-	gzipWriter, err := pgzip.NewWriterLevel(output, compressionLevel)
+	// Use standard gzip instead of pgzip to avoid corruption with large files
+	// pgzip parallel compression can have issues with very large QCOW2 files (>1GB)
+	gzipWriter, err := gzip.NewWriterLevel(output, compressionLevel)
 	if err != nil {
 		return nil, ErrInvalidCompressionLevel
 	}
-	_ = gzipWriter.SetConcurrency(500000, runtime.GOMAXPROCS(-1))
 	return gzipWriter, nil
 }
