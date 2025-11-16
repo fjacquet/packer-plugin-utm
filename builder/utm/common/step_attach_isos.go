@@ -13,6 +13,15 @@ import (
 
 // This step attaches the boot ISO, cd_files iso, and guest additions to the
 // virtual machine, if present.
+//
+// ISOs are attached in a specific order to ensure predictable drive letter
+// assignment in Windows guests:
+//   1. boot_iso - The installation ISO (typically C: after install, but mounted first)
+//   2. cd_files - User-provided files ISO (typically D: in Windows)
+//   3. guest_additions - UTM guest tools ISO (typically E: in Windows)
+//
+// This ordering is critical for Windows installations where scripts may depend
+// on knowing which drive letter to use for accessing files or running installers.
 type StepAttachISOs struct {
 	AttachBootISO           bool
 	ISOInterface            string
@@ -21,35 +30,88 @@ type StepAttachISOs struct {
 	diskUnmountCommands     map[string][]string
 }
 
+// diskToMount represents an ISO to mount with its category and path
+type diskToMount struct {
+	category string
+	isoPath  string
+}
+
 func (s *StepAttachISOs) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	// Check whether there is anything to attach
 	ui := state.Get("ui").(packersdk.Ui)
 
 	ui.Say("Mounting ISOs...")
-	diskMountMap := map[string]string{}
+	// Use a slice to maintain predictable order for consistent drive letters in Windows
+	disksToMount := []diskToMount{}
 	s.diskUnmountCommands = map[string][]string{}
+
 	// Track the bootable iso (only used in utm-iso builder. )
+	// Boot ISO should be first for predictable drive letters
 	if s.AttachBootISO {
 		isoPath := state.Get("iso_path").(string)
-		diskMountMap["boot_iso"] = isoPath
+		// Convert to absolute path if it's not already
+		if !filepath.IsAbs(isoPath) {
+			absPath, err := filepath.Abs(isoPath)
+			if err != nil {
+				err := fmt.Errorf("error converting iso_path to absolute path: %s", err)
+				state.Put("error", err)
+				ui.Error(err.Error())
+				return multistep.ActionHalt
+			}
+			isoPath = absPath
+		}
+		disksToMount = append(disksToMount, diskToMount{
+			category: "boot_iso",
+			isoPath:  isoPath,
+		})
 	}
 
 	// Determine if we even have a cd_files disk to attach
+	// cd_files should be second for predictable drive letters (usually D: in Windows)
 	if cdPathRaw, ok := state.GetOk("cd_path"); ok {
 		cdFilesPath := cdPathRaw.(string)
-		diskMountMap["cd_files"] = cdFilesPath
+		// Convert to absolute path if it's not already
+		if !filepath.IsAbs(cdFilesPath) {
+			absPath, err := filepath.Abs(cdFilesPath)
+			if err != nil {
+				err := fmt.Errorf("error converting cd_path to absolute path: %s", err)
+				state.Put("error", err)
+				ui.Error(err.Error())
+				return multistep.ActionHalt
+			}
+			cdFilesPath = absPath
+		}
+		disksToMount = append(disksToMount, diskToMount{
+			category: "cd_files",
+			isoPath:  cdFilesPath,
+		})
 	}
 
 	// Determine if we have guest additions to attach
+	// Guest additions should be last for predictable drive letters (usually E: in Windows)
 	if s.GuestAdditionsMode != GuestAdditionsModeAttach {
 		log.Println("Not attaching guest additions since we're uploading.")
 	} else {
 		// Get the guest additions path since we're doing it
 		guestAdditionsPath := state.Get("guest_additions_path").(string)
-		diskMountMap["guest_additions"] = guestAdditionsPath
+		// Convert to absolute path if it's not already
+		if !filepath.IsAbs(guestAdditionsPath) {
+			absPath, err := filepath.Abs(guestAdditionsPath)
+			if err != nil {
+				err := fmt.Errorf("error converting guest_additions_path to absolute path: %s", err)
+				state.Put("error", err)
+				ui.Error(err.Error())
+				return multistep.ActionHalt
+			}
+			guestAdditionsPath = absPath
+		}
+		disksToMount = append(disksToMount, diskToMount{
+			category: "guest_additions",
+			isoPath:  guestAdditionsPath,
+		})
 	}
 
-	if len(diskMountMap) == 0 {
+	if len(disksToMount) == 0 {
 		ui.Message("No ISOs to mount; continuing...")
 		return multistep.ActionContinue
 	}
@@ -57,10 +119,11 @@ func (s *StepAttachISOs) Run(ctx context.Context, state multistep.StateBag) mult
 	driver := state.Get("driver").(Driver)
 	vmId := state.Get("vmId").(string)
 
-	// Iterate over the ISOs to attach
-	// Attach one after the other
-	// if you need to order the ISOs, this will not work. (Use a slice of structs instead)
-	for diskCategory, isoPath := range diskMountMap {
+	// Iterate over the ISOs to attach in the specified order
+	// This ensures predictable drive letter assignment in Windows guests
+	for _, disk := range disksToMount {
+		diskCategory := disk.category
+		isoPath := disk.isoPath
 		// If it's a symlink, resolve it to its target.
 		resolvedIsoPath, err := filepath.EvalSymlinks(isoPath)
 		if err != nil {

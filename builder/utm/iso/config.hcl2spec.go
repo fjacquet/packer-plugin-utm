@@ -112,6 +112,7 @@ type FlatConfig struct {
 	GuestAdditionsInterface   *string           `mapstructure:"guest_additions_interface" required:"false" cty:"guest_additions_interface" hcl:"guest_additions_interface"`
 	GuestAdditionsPath        *string           `mapstructure:"guest_additions_path" cty:"guest_additions_path" hcl:"guest_additions_path"`
 	GuestAdditionsSHA256      *string           `mapstructure:"guest_additions_sha256" cty:"guest_additions_sha256" hcl:"guest_additions_sha256"`
+	GuestAdditionsTargetPath  *string           `mapstructure:"guest_additions_target_path" required:"false" cty:"guest_additions_target_path" hcl:"guest_additions_target_path"`
 	GuestAdditionsURL         *string           `mapstructure:"guest_additions_url" required:"false" cty:"guest_additions_url" hcl:"guest_additions_url"`
 	DisplayNoPause            *bool             `mapstructure:"display_nopause" required:"false" cty:"display_nopause" hcl:"display_nopause"`
 	BootNoPause               *bool             `mapstructure:"boot_nopause" required:"false" cty:"boot_nopause" hcl:"boot_nopause"`
@@ -251,6 +252,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"guest_additions_interface":    &hcldec.AttrSpec{Name: "guest_additions_interface", Type: cty.String, Required: false},
 		"guest_additions_path":         &hcldec.AttrSpec{Name: "guest_additions_path", Type: cty.String, Required: false},
 		"guest_additions_sha256":       &hcldec.AttrSpec{Name: "guest_additions_sha256", Type: cty.String, Required: false},
+		"guest_additions_target_path":  &hcldec.AttrSpec{Name: "guest_additions_target_path", Type: cty.String, Required: false},
 		"guest_additions_url":          &hcldec.AttrSpec{Name: "guest_additions_url", Type: cty.String, Required: false},
 		"display_nopause":              &hcldec.AttrSpec{Name: "display_nopause", Type: cty.Bool, Required: false},
 		"boot_nopause":                 &hcldec.AttrSpec{Name: "boot_nopause", Type: cty.Bool, Required: false},

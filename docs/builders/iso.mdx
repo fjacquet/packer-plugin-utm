@@ -17,10 +17,10 @@ The UTM Packer builder is able to create
 [UTM](https://mac.getutm.app/) virtual machines and export them in
 the .utm format., starting from an existing ISO file.
 
-The builder builds a virtual machine by creating 
-a new virtual machine from scratch, booting it, installing an OS, 
-provisioning software within the OS, then shutting it down. 
-The result of the UTM builder is a directory containing 
+The builder builds a virtual machine by creating
+a new virtual machine from scratch, booting it, installing an OS,
+provisioning software within the OS, then shutting it down.
+The result of the UTM builder is a directory containing
 all the files necessary to run the virtual machine portably.
 
 <!--
@@ -29,8 +29,8 @@ all the files necessary to run the virtual machine portably.
 -->
 ### Basic Example
 
-Here is a basic example. This example is not functional. 
-It will start the OS installer but then fail because we don't provide the install config file for OpenBSD to self-install. 
+Here is a basic example. This example is not functional.
+It will start the OS installer but then fail because we don't provide the install config file for OpenBSD to self-install.
 Still, the example serves to show the basic configuration:
 
 ```hcl
@@ -144,6 +144,24 @@ necessary for this build to succeed and can be found further down the page.
 #### Optional:
 
 @include 'packer-plugin-sdk/bootcommand/BootConfig-not-required.mdx'
+
+
+### Guest Additions Configuration
+
+@include 'builder/utm/common/GuestAdditionsConfig.mdx'
+
+#### Optional:
+
+@include 'builder/utm/common/GuestAdditionsConfig-not-required.mdx'
+
+**Note for Windows Guests:** When using `guest_additions_mode = "attach"` with Windows,
+ISOs are attached in a predictable order to ensure consistent drive letter assignment:
+1. Boot ISO (installation media)
+2. CD Files (if using `cd_files` or `cd_content`) - typically assigned drive letter D:
+3. Guest Additions ISO - typically assigned drive letter E:
+
+This predictable ordering allows you to reference specific drive letters in your
+provisioning scripts (e.g., `D:\setup.bat` or `E:\utm-guest-tools-installer.exe`).
 
 
 ### No Pause configuration
