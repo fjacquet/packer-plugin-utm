@@ -44,9 +44,9 @@ jobs:
         env:
           PACKER_LOG: ${{ github.event.inputs.logs }}
 
-      - name: Build
-        id: build
-        run: packer build ${{ github.event.inputs.folder }}
-        env:
-          PACKER_LOG: ${{ github.event.inputs.logs }}
+      # - name: Build
+      #   id: build
+      #   run: packer build ${{ github.event.inputs.folder }}
+      #   env:
+      #     PACKER_LOG: ${{ github.event.inputs.logs }}
 
