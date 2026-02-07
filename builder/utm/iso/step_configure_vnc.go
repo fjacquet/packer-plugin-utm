@@ -82,7 +82,7 @@ func (s *stepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
-	s.l.Listener.Close() // free port, but don't unlock lock file
+	_ = s.l.Listener.Close() // free port, but don't unlock lock file
 	vncPort := s.l.Port
 
 	vncPassword := VNCPassword(s.VNCDisablePassword)

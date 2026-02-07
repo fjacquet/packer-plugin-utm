@@ -57,7 +57,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 	// Clear out the Packer-created forwarding rule
 	commPort := state.Get("commHostPort")
 	if !s.SkipNatMapping && commPort != 0 {
-		ui.Message(fmt.Sprintf(
+		ui.Say(fmt.Sprintf(
 			"Deleting forwarded port mapping for the communicator (SSH, WinRM, etc) (host port %d)", commPort))
 		// Assert that commPort is of type int
 		commPortInt, ok := commPort.(int)
@@ -82,7 +82,7 @@ func (s *StepExport) Run(ctx context.Context, state multistep.StateBag) multiste
 	// Clear out all Packer-created build-time QEMU additional arguments
 	buildTimeArgs, _ := state.Get("buildTimeQemuArgs").([]string)
 	if len(buildTimeArgs) > 0 {
-		ui.Message(fmt.Sprintf(
+		ui.Say(fmt.Sprintf(
 			"Removing %d build-time QEMU additional argument(s)", len(buildTimeArgs)))
 		removeQemuArgsCommand := []string{
 			"remove_qemu_additional_args.applescript", vmId,
