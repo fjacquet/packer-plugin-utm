@@ -96,6 +96,9 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			Hypervisor:     b.config.Hypervisor,
 			KeepRegistered: b.config.KeepRegistered,
 		},
+		&utmcommon.StepConfigureQemuArgs{
+			QemuArgs: b.config.QemuArgs,
+		},
 		// TODO: Make sure ISO is first in the list for boot order
 		new(stepCreateDisk),
 		&utmcommon.StepAttachISOs{

@@ -84,6 +84,9 @@ func (b *Builder) Run(ctx context.Context, ui packersdk.Ui, hook packersdk.Hook)
 			Hypervisor:     b.config.Hypervisor,
 			KeepRegistered: b.config.KeepRegistered,
 		},
+		&utmcommon.StepConfigureQemuArgs{
+			QemuArgs: b.config.QemuArgs,
+		},
 		// This step creates a disk from source (cloud image) and attaches it to the VM
 		new(stepCreateCloudDisk),
 		&utmcommon.StepPortForwarding{

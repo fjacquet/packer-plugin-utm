@@ -120,8 +120,10 @@ func (s *stepConfigureCloudSeed) configureCloudInitHTTP(ctx context.Context, sta
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
-	// Save the Cloud QEMU argument for later cleanup
-	state.Put("qemuAdditionalArg", cloudQemuArg)
+	// Append the Cloud QEMU argument to build-time args for later cleanup
+	buildTimeArgs, _ := state.Get("buildTimeQemuArgs").([]string)
+	buildTimeArgs = append(buildTimeArgs, cloudQemuArg)
+	state.Put("buildTimeQemuArgs", buildTimeArgs)
 
 	return multistep.ActionContinue
 }
