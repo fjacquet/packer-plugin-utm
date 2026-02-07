@@ -107,8 +107,10 @@ func (s *stepConfigureVNC) Run(ctx context.Context, state multistep.StateBag) mu
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
-	// Save the VNC QEMU argument for later cleanup
-	state.Put("qemuAdditionalArg", vncQemuArg)
+	// Append the VNC QEMU argument to build-time args for later cleanup
+	buildTimeArgs, _ := state.Get("buildTimeQemuArgs").([]string)
+	buildTimeArgs = append(buildTimeArgs, vncQemuArg)
+	state.Put("buildTimeQemuArgs", buildTimeArgs)
 
 	return multistep.ActionContinue
 }
