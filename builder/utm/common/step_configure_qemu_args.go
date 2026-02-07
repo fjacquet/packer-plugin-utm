@@ -60,6 +60,10 @@ func (s *StepConfigureQemuArgs) Run(ctx context.Context, state multistep.StateBa
 		return multistep.ActionHalt
 	}
 
+	// Store user args in state bag so later steps (VNC, cloud-init) can
+	// re-include them when calling add_qemu_additional_args (which replaces, not appends).
+	state.Put("userQemuArgs", qemuArgStrings)
+
 	return multistep.ActionContinue
 }
 
